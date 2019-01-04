@@ -84,8 +84,7 @@ enum Instructions {
 };
 }
 
-namespace Opcodes {
-enum Opcodes {
+enum class Opcodes {
 	LUI        = 0b0110111,
 	AUIPC      = 0b0010111,
 	JAL        = 0b1101111,
@@ -97,35 +96,76 @@ enum Opcodes {
 	ARITH      = 0b0110011,
 	FENCE      = 0b0001111 
 };
+
+constexpr inline Opcodes opcode_from_inst(uint32_t inst) {
+	uint8_t opcode = inst & 0x7f;
+	return static_cast<Opcodes>(opcode);
 }
 
 template <typename T, unsigned B>
-inline T signextend(const T x)
-{
-  struct {T x:B;} s;
-  return s.x = x;
+inline T signextend(const T x) {
+	static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
+	struct {T x:B;} s;
+	return s.x = x;
+}
+
+constexpr inline uint8_t get_rd(uint32_t inst) {
+	return ((inst >> 7) & 0x1F);
+}
+
+constexpr inline uint8_t get_rs1(uint32_t inst) {
+	return ((inst >> 15) & 0x1F);
+}
+
+constexpr inline uint8_t get_rs2(uint32_t inst) {
+	return ((inst >> 20) & 0x1F);
+}
+
+constexpr inline uint8_t get_funct3(uint32_t inst) {
+	return ((inst >> 12) & 0x07);
+}
+
+constexpr inline uint8_t get_funct7(uint32_t inst) {
+	return ((inst >> 25) & 0x7F);
 }
 
 void decode(uint32_t inst) {
-	uint8_t opcode = inst & 0x7f;
-	switch (opcode) {
-		case Opcodes::LUI:
-			printf("LUI\n");
+	switch (opcode_from_inst(inst)) {
+		case Opcodes::LUI: {
+			uint8_t rd = get_rd(inst);
+			uint16_t imm = inst & 0xFFFFF000;
+			printf("LUI x%d ← #%d\n", rd, imm);
 			break;
-		case Opcodes::AUIPC:
-			printf("AUIPC\n");
+		}
+		case Opcodes::AUIPC: {
+			uint8_t rd = get_rd(inst);
+			uint16_t imm = inst & 0xFFFFF000;
+			printf("AUIPC x%d ← #(pc + %d)\n", rd, imm);
 			break;
-		case Opcodes::JAL:
+		}
+		case Opcodes::JAL: {
+			int32_t offset = 0;
+			offset = offset | ((inst >> 20) & 0b000000000011111111110);
+			offset = offset | ((inst >> 9)  & 0b000000000100000000000);
+			offset = offset | ((inst << 4)  & 0b011111111000000000000);
+			offset = offset | ((inst >> 11) & 0b100000000000000000000);
+			offset = signextend<int32_t, 21>(offset);
 			printf("JAL\n");
 			break;
-		case Opcodes::JALR:
-			printf("JALR\n");
+		}
+		case Opcodes::JALR: {
+			uint8_t rd = get_rd(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t offset = (inst >> 20) & 0xFFF;
+			offset = signextend<int16_t, 12>(offset);
+			printf("JALR x%d, x%d, #%d\n", rd, rs1, offset);
 			break;
+		}
 		case Opcodes::BRANCH: {
 			printf("BRANCH: ");
-			uint8_t funct3 = (inst >> 12) & 0x07;
-			uint8_t rs1 = (inst >> 15) & 0x1F;
-			uint8_t rs2 = (inst >> 20) & 0x1F;
+			uint8_t funct3 = get_funct3(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t rs2 = get_rs2(inst);
 			int16_t offset = 0;
 			offset = offset | ((inst >> 7)  & 0b0000000011110);
 			offset = offset | ((inst >> 20) & 0b0011111100000);
@@ -157,9 +197,9 @@ void decode(uint32_t inst) {
 		}
 		case Opcodes::LOAD: {
 			printf("LOAD: ");
-			uint8_t funct3 = (inst >> 12) & 0x07;
-			uint8_t rs1 = (inst >> 15) & 0x1F;
-			uint8_t rd = (inst >> 7) & 0x1F;
+			uint8_t funct3 = get_funct3(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t rd = get_rd(inst);
 			uint8_t offset = (inst >> 20) & 0xFFF;
 			offset = signextend<int16_t, 12>(offset);
 			switch (funct3) {
@@ -183,9 +223,9 @@ void decode(uint32_t inst) {
 		}
 		case Opcodes::STORE: {
 			printf("STORE: ");
-			uint8_t funct3 = (inst >> 12) & 0x07;
-			uint8_t rs1 = (inst >> 15) & 0x1F;
-			uint8_t rs2 = (inst >> 20) & 0x1F;
+			uint8_t funct3 = get_funct3(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t rs2 = get_rs2(inst);
 			int16_t offset = 0;
 			offset = offset | ((inst >> 7)  & 0b000000011111);
 			offset = offset | ((inst >> 20) & 0b111111100000);
@@ -205,9 +245,9 @@ void decode(uint32_t inst) {
 		}
 		case Opcodes::ARITH_IMM: {
 			printf("ARITH_IMM: ");
-			uint8_t funct3 = (inst >> 12) & 0x07;
-			uint8_t rs1 = (inst >> 15) & 0x1F;
-			uint8_t rd = (inst >> 7) & 0x1F;
+			uint8_t funct3 = get_funct3(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t rd = get_rd(inst);
 			uint16_t imm = (inst >> 20) & 0xFFF;
 			int16_t simm = signextend<int16_t, 12>(imm);
 			switch (funct3) {
@@ -233,7 +273,7 @@ void decode(uint32_t inst) {
 					printf("SLLI\n");
 					break;
 				case 0b101:
-					uint8_t funct7 = (inst >> 25) & 0x7F;
+					uint8_t funct7 = get_funct7(inst);
 					if (funct7 == 0) {
 						printf("SRLI\n");
 					} else {
@@ -245,11 +285,12 @@ void decode(uint32_t inst) {
 		}
 		case Opcodes::ARITH: {
 			printf("ARITH: ");
-			uint8_t funct3 = (inst >> 12) & 0x07;
-			uint8_t funct7 = (inst >> 25) & 0x7F;
-			uint8_t rs1 = (inst >> 15) & 0x1F;
-			uint8_t rs2 = (inst >> 20) & 0x1F;
-			uint8_t rd = (inst >> 7) & 0x1F;
+			uint8_t funct3 = get_funct3(inst);
+			uint8_t funct7 = get_funct7(inst);
+			uint8_t rs1 = get_rs1(inst);
+			uint8_t rs2 = get_rs2(inst);
+			uint8_t rd = get_rd(inst);
+			uint16_t imm = (inst >> 20) & 0xFFF;
 			switch (funct3) {
 				case 0b000:
 					if (funct7 == 0) {
