@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdint>
 
-enum class Instructions {
+enum class Operations {
 	LUI,
 	AUIPC,
 	JAL,
@@ -102,7 +102,7 @@ struct InstructionElements {
 	// only the relevant elements will be set
 	// Eg if an instruction doesn't have an rd than it will not be set
 
-	Instructions instruction;
+	Operations instruction;
 	uint8_t funct3;
 	uint8_t funct7;
 	uint8_t rd;
@@ -185,25 +185,25 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 	switch (get_opcode(raw_inst)) {
 		case Opcodes::LUI: {
 			el = unpack_instruction(InstructionFormats::U, raw_inst);
-			el.instruction = Instructions::LUI;
+			el.instruction = Operations::LUI;
 			return el;
 			break;
 		}
 		case Opcodes::AUIPC: {
 			el = unpack_instruction(InstructionFormats::U, raw_inst);
-			el.instruction = Instructions::AUIPC;
+			el.instruction = Operations::AUIPC;
 			return el;
 			break;
 		}
 		case Opcodes::JAL: {
 			el = unpack_instruction(InstructionFormats::J, raw_inst);
-			el.instruction = Instructions::JAL;
+			el.instruction = Operations::JAL;
 			return el;
 			break;
 		}
 		case Opcodes::JALR: {
 			el = unpack_instruction(InstructionFormats::I, raw_inst);
-			el.instruction = Instructions::JALR;
+			el.instruction = Operations::JALR;
 			return el;
 			break;
 		}
@@ -211,22 +211,22 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			el = unpack_instruction(InstructionFormats::B, raw_inst);
 			switch (el.funct3) {
 				case 0b000:
-					el.instruction = Instructions::BEQ;
+					el.instruction = Operations::BEQ;
 					break;
 				case 0b001:
-					el.instruction = Instructions::BNE;
+					el.instruction = Operations::BNE;
 					break;
 				case 0b100:
-					el.instruction = Instructions::BLT;
+					el.instruction = Operations::BLT;
 					break;
 				case 0b101:
-					el.instruction = Instructions::BGE;
+					el.instruction = Operations::BGE;
 					break;
 				case 0b110:
-					el.instruction = Instructions::BLTU;
+					el.instruction = Operations::BLTU;
 					break;
 				case 0b111:
-					el.instruction = Instructions::BGEU;
+					el.instruction = Operations::BGEU;
 					break;
 			}
 
@@ -237,19 +237,19 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			el = unpack_instruction(InstructionFormats::I, raw_inst);
 			switch (el.funct3) {
 				case 0b000:
-					el.instruction = Instructions::LB;
+					el.instruction = Operations::LB;
 					break;
 				case 0b001:
-					el.instruction = Instructions::LH;
+					el.instruction = Operations::LH;
 					break;
 				case 0b010:
-					el.instruction = Instructions::LW;
+					el.instruction = Operations::LW;
 					break;
 				case 0b100:
-					el.instruction = Instructions::LBU;
+					el.instruction = Operations::LBU;
 					break;
 				case 0b101:
-					el.instruction = Instructions::LHU;
+					el.instruction = Operations::LHU;
 					break;
 			}
 			return el;
@@ -259,13 +259,13 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			el = unpack_instruction(InstructionFormats::S, raw_inst);
 			switch (el.funct3) {
 				case 0b000:
-					el.instruction = Instructions::SB;
+					el.instruction = Operations::SB;
 					break;
 				case 0b001:
-					el.instruction = Instructions::SH;
+					el.instruction = Operations::SH;
 					break;
 				case 0b010:
-					el.instruction = Instructions::SW;
+					el.instruction = Operations::SW;
 					break;
 			}
 			return el;
@@ -275,34 +275,34 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			el = unpack_instruction(InstructionFormats::I, raw_inst);
 			switch (el.funct3) {
 				case 0b000:
-					el.instruction = Instructions::ADDI;
+					el.instruction = Operations::ADDI;
 					break;
 				case 0b010:
-					el.instruction = Instructions::SLTI;
+					el.instruction = Operations::SLTI;
 					break;
 				case 0b011:
-					el.instruction = Instructions::SLTIU;
+					el.instruction = Operations::SLTIU;
 					break;
 				case 0b100:
-					el.instruction = Instructions::XORI;
+					el.instruction = Operations::XORI;
 					break;
 				case 0b110:
-					el.instruction = Instructions::ORI;
+					el.instruction = Operations::ORI;
 					break;
 				case 0b111:
-					el.instruction = Instructions::ANDI;
+					el.instruction = Operations::ANDI;
 					break;
 				case 0b001:
-					el.instruction = Instructions::SLLI;
+					el.instruction = Operations::SLLI;
 					break;
 				case 0b101:
 					// Shift right instruction uses 5 bit immediate 
 					// for shift amount, and funct7 for what type of shift
 					uint8_t funct7 = get_funct7(raw_inst);
 					if (funct7 == 0) {
-						el.instruction = Instructions::SRLI;
+						el.instruction = Operations::SRLI;
 					} else {
-						el.instruction = Instructions::SRAI;
+						el.instruction = Operations::SRAI;
 						el.imm = el.imm & 0x1F;
 					}
 					break;
@@ -315,35 +315,35 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			switch (el.funct3) {
 				case 0b000:
 					if (el.funct7 == 0) {
-						el.instruction = Instructions::ADD;
+						el.instruction = Operations::ADD;
 					} else {
-						el.instruction = Instructions::SUB;
+						el.instruction = Operations::SUB;
 					}
 					break;
 				case 0b001:
-					el.instruction = Instructions::SLL;
+					el.instruction = Operations::SLL;
 					break;
 				case 0b010:
-					el.instruction = Instructions::SLT;
+					el.instruction = Operations::SLT;
 					break;
 				case 0b011:
-					el.instruction = Instructions::SLTU;
+					el.instruction = Operations::SLTU;
 					break;
 				case 0b100:
-					el.instruction = Instructions::XOR;
+					el.instruction = Operations::XOR;
 					break;
 				case 0b101:
 					if (el.funct7 == 0) {
-						el.instruction = Instructions::SRL;
+						el.instruction = Operations::SRL;
 					} else {
-						el.instruction = Instructions::SRA;
+						el.instruction = Operations::SRA;
 					}
 					break;
 				case 0b110:
-					el.instruction = Instructions::OR;
+					el.instruction = Operations::OR;
 					break;
 				case 0b111:
-					el.instruction = Instructions::AND;
+					el.instruction = Operations::AND;
 					break;
 			}
 			return el;
@@ -353,10 +353,10 @@ InstructionElements decode_instruction(uint32_t raw_inst) {
 			el = unpack_instruction(InstructionFormats::I, raw_inst);
 			switch (el.funct3) {
 				case 0b000:
-					el.instruction = Instructions::FENCE;
+					el.instruction = Operations::FENCE;
 					break;
 				case 0b001:
-					el.instruction = Instructions::FENCEI;
+					el.instruction = Operations::FENCEI;
 					break;
 			}
 			break;
@@ -368,121 +368,121 @@ void print_instruction(uint32_t raw_inst) {
 	auto inst = decode_instruction(raw_inst);
 
 	switch (inst.instruction) {
-		case Instructions::LUI:
+		case Operations::LUI:
 			printf("LUI x%d ← #%d\n", inst.rd, inst.imm);
 			break;
-		case Instructions::AUIPC:
+		case Operations::AUIPC:
 			printf("AUIPC x%d ← #(pc + %d)\n", inst.rd, inst.imm);
 			break;
-		case Instructions::JAL: 
+		case Operations::JAL: 
 			printf("JAL\n");
 			break;
-		case Instructions::JALR: 
+		case Operations::JALR: 
 			printf("JALR x%d, x%d, #%d\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::BEQ:
+		case Operations::BEQ:
 			printf("BEQ x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::BNE:
+		case Operations::BNE:
 			printf("BNE x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::BLT:
+		case Operations::BLT:
 			printf("BLT x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::BGE:
+		case Operations::BGE:
 			printf("BGE x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::BLTU:
+		case Operations::BLTU:
 			printf("BLTU x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::BGEU:
+		case Operations::BGEU:
 			printf("BGEU x%d,x%d,%d\n", inst.rs1, inst.rs2, inst.simm);
 			break;
-		case Instructions::LB:
+		case Operations::LB:
 			printf("LB x%d ← [x%d + %d]\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::LH:
+		case Operations::LH:
 			printf("LH x%d ← [x%d + %d]\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::LW:
+		case Operations::LW:
 			printf("LW x%d ← [x%d + %d]\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::LBU:
+		case Operations::LBU:
 			printf("LBU x%d ← [x%d + %d]\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::LHU:
+		case Operations::LHU:
 			printf("LHU x%d ← [x%d + %d]\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::SB:
+		case Operations::SB:
 			printf("SB [x%d + #%d] ← x%d\n", inst.rs1, inst.simm, inst.rs2);
 			break;
-		case Instructions::SH:
+		case Operations::SH:
 			printf("SH [x%d + #%d] ← x%d\n", inst.rs1, inst.simm, inst.rs2);
 			break;
-		case Instructions::SW:
+		case Operations::SW:
 			printf("SW [x%d + #%d] ← x%d\n", inst.rs1, inst.simm, inst.rs2);
 			break;
-		case Instructions::ADDI:
+		case Operations::ADDI:
 			printf("ADDI x%d ← x%d + #%d\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::SLTI:
+		case Operations::SLTI:
 			printf("SLTI x%d ← x%d < #%d\n", inst.rd, inst.rs1, inst.simm);
 			break;
-		case Instructions::SLTIU:
+		case Operations::SLTIU:
 			printf("SLTIU x%d ← x%d < #%d\n", inst.rd, inst.rs1, inst.imm);
 			break;
-		case Instructions::XORI:
+		case Operations::XORI:
 			printf("XORI x%d ← x%d ^ #%d\n", inst.rd, inst.rs1, inst.imm);
 			break;
-		case Instructions::ORI:
+		case Operations::ORI:
 			printf("ORI x%d ← x%d | #%d\n", inst.rd, inst.rs1, inst.imm);
 			break;
-		case Instructions::ANDI:
+		case Operations::ANDI:
 			printf("ANDI x%d ← x%d & #%d\n", inst.rd, inst.rs1, inst.imm);
 			break;
-		case Instructions::SLLI:
+		case Operations::SLLI:
 			printf("SLLI\n");
 			break;
-		case Instructions::SRLI:
+		case Operations::SRLI:
 			printf("SRLI\n");
 			break;
-		case Instructions::SRAI:
+		case Operations::SRAI:
 			printf("SRAI\n");
 			break;
-		case Instructions::ADD:
+		case Operations::ADD:
 			printf("ADD x%d ← x%d + x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SUB:
+		case Operations::SUB:
 			printf("SUB x%d ← x%d - x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SLL:
+		case Operations::SLL:
 			printf("SLL x%d ← x%d << x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SLT:
+		case Operations::SLT:
 			printf("SLT x%d ← x%d < x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SLTU:
+		case Operations::SLTU:
 			printf("SLTU x%d ← x%d < x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::XOR:
+		case Operations::XOR:
 			printf("XOR x%d ← x%d ^ x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SRL:
+		case Operations::SRL:
 			printf("SRL x%d ← x%d >> x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::SRA:
+		case Operations::SRA:
 			printf("SRA x%d ← x%d >> x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::OR:
+		case Operations::OR:
 			printf("OR x%d ← x%d | x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::AND:
+		case Operations::AND:
 			printf("AND x%d ← x%d & x%d\n", inst.rd, inst.rs1, inst.rs2);
 			break;
-		case Instructions::FENCE:
+		case Operations::FENCE:
 			printf("FENCE\n");
 			break;
-		case Instructions::FENCEI:
+		case Operations::FENCEI:
 			printf("FENCEI\n");
 			break;
 	}
