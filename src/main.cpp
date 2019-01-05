@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdint>
 
+#include <unistd.h>
 #include "decoding.h"
 
 void print_instruction(uint32_t raw_inst) {
@@ -128,8 +129,6 @@ void print_instruction(uint32_t raw_inst) {
 }
 
 
-#include "test_instructions.h"
-
 int32_t registers[32] = {};
 uint32_t program[10] = {
 	            0b00000000111100000000010110010011, // set x11 to 15
@@ -141,8 +140,6 @@ uint32_t program[10] = {
                   };
 
 int END_PROGRAM = 5;
-
-#include <unistd.h>
 
 int main(int argc, char* argv[]) {
 	uint32_t program_counter = 0;
