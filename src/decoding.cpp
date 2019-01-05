@@ -84,7 +84,7 @@ constexpr static Instruction unpack_instruction(InstructionFormats f, uint32_t r
 			el.imm = 0;
 			el.imm =          ((raw_inst >> 20) & 0b000000000011111111110);
 			el.imm = el.imm | ((raw_inst >> 9)  & 0b000000000100000000000);
-			el.imm = el.imm | ((raw_inst << 4)  & 0b011111111000000000000);
+			el.imm = el.imm | ((raw_inst)  & 0b011111111000000000000);
 			el.imm = el.imm | ((raw_inst >> 11) & 0b100000000000000000000);
 			el.simm = signextend<int32_t, 21>(el.imm);
 			break;
