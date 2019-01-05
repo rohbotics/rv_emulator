@@ -63,9 +63,9 @@ Instruction decode_instruction(uint32_t raw_inst);
 /*** Inline utility functions ***/
 
 template <typename T, unsigned B>
-inline T signextend(const T x) {
+constexpr inline T signextend(const T x) {
 	static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
-	struct {T x:B;} s;
+	struct {T x:B;} s = {0};
 	return s.x = x;
 }
 
