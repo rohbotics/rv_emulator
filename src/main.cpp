@@ -14,7 +14,7 @@ void print_instruction(uint32_t raw_inst) {
 			printf("AUIPC x%d ← #(pc + %d)\n", inst.rd, inst.imm);
 			break;
 		case Operations::JAL: 
-			printf("JAL\n");
+			printf("JAL %d, %d\n", inst.rd, inst.simm);
 			break;
 		case Operations::JALR: 
 			printf("JALR x%d, x%d, #%d\n", inst.rd, inst.rs1, inst.simm);
@@ -130,53 +130,52 @@ void print_instruction(uint32_t raw_inst) {
 
 #include "test_instructions.h"
 
+int32_t registers[32] = {};
+uint32_t program[10] = {
+	            0b00000000111100000000010110010011, // set x11 to 15
+	            0b00000000000100000000010100010011, // set x10 to 0
+	            0b00000000000101010000010100010011, // ADDI x10, x10, 1
+	            0b11111110101001011100110011100011, // BLT x11, x10, -8
+                    0b11111111100111111111000001101111  // JAL x0, -8
+                  };
+
+int END_PROGRAM = 5;
+
+#include <unistd.h>
+
 int main(int argc, char* argv[]) {
-	print_instruction(0b00000000000100010001000011100011);
-	print_instruction(0b10000000000100010000000001100011);
-	print_instruction(0b10000000000100010110000011100011);
-	
-	print_instruction(0b01111110000000000000111111100011);
-	print_instruction(0b00000000101010011000100001100011);
+	uint32_t program_counter = 0;
 
+	while (program_counter < END_PROGRAM) {
+		const auto raw_inst = program[program_counter];
+		printf("-----------------------------------------\n");
+		print_instruction(raw_inst);
+		const auto inst = decode_instruction(raw_inst);
 
-	print_instruction(0b01001001000100001000000010010011); //ADDI
-	print_instruction(0b00000000000100001100000010010011); //XORI
-
-	print_instruction(0b00000000001000001000000110110011); //ADD
-
-	printf("\n");
-
-	print_instruction(ibeq);
-	print_instruction(ibne);
-	print_instruction(iblt);
-	print_instruction(ibge);
-	print_instruction(ibltu);
-	print_instruction(ibgeu);
-	print_instruction(ijal);
-	print_instruction(ijalr);
-	print_instruction(ilui);
-	print_instruction(iauipc);
-	
-	print_instruction(iaddi);
-	print_instruction(islli);
-	print_instruction(islti);
-	print_instruction(isltiu);
-	print_instruction(ixori);
-	print_instruction(isrli);
-	print_instruction(israi);
-	print_instruction(iori);
-	print_instruction(iandi);
-
-	print_instruction(iadd);
-	print_instruction(isll);
-	print_instruction(islt);
-	print_instruction(isltu);
-	print_instruction(ixor);
-	print_instruction(isrl);
-	print_instruction(isra);
-	print_instruction(ior);
-	print_instruction(iand);
-
+		bool pc_set = false;
+		switch (inst.operation) {
+			case Operations::ADDI:
+				if (inst.rd != 0)
+					registers[inst.rd] = registers[inst.rs1] + inst.simm;
+				break;
+			case Operations::JAL:
+				if (inst.rd != 0)
+					registers[inst.rd] = program_counter + 1;
+				program_counter += (inst.simm/4);
+				pc_set= true;
+				break;
+			case Operations::BLT:
+				if (registers[inst.rs1] < registers[inst.rs2]) {
+					program_counter += (inst.simm/4);
+					pc_set= true;
+				}
+				break;
+		}
+		if (!pc_set)
+			program_counter++;
+		printf("PC:%d, x10: %d, x11: %d, x12: %d \n", program_counter, registers[10], registers[11], registers[12]);
+		usleep(500000); // sleep for 500,000 microseconds (0.5 seconds)
+	}
 }
 
 
