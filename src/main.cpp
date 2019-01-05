@@ -142,7 +142,7 @@ uint32_t program[10] = {
 
 unsigned int END_PROGRAM = 5;
 
-int main(int argc, char* argv[]) {
+int main() {
 	uint32_t program_counter = 0;
 	uint32_t cycle = 1;
 

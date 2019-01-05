@@ -268,4 +268,7 @@ Instruction decode_instruction(uint32_t raw_inst) {
 			break;
 		}
 	}
+
+	// TODO: If we get here then we should throw an unknown instruction error
+	return el;
 }
