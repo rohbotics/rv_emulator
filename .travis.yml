@@ -1,6 +1,10 @@
-dist: xenial
-
 language: cpp
+matrix:
+        include: 
+        - os: linux
+          dist: xenial
+        - os: osx
+
 script:
         - mkdir -p build; cd build
         - cmake ..
