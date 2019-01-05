@@ -44,3 +44,77 @@ TEST_CASE("Operation Decoding", "[decoding]") {
 	REQUIRE(decode_instruction(ifence).operation == Operations::FENCE);
 	REQUIRE(decode_instruction(ifencei).operation == Operations::FENCEI);
 }
+
+TEST_CASE("R-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b00000000001000001000000110110011);
+	REQUIRE(a.funct7 == 0);
+	REQUIRE(a.funct3 == 0);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rs2 == 0b00010);
+	REQUIRE(a.rd ==  0b00011);
+	
+	a = decode_instruction(0b00001110001000001011000110110011);
+	REQUIRE(a.funct7 == 7);
+	REQUIRE(a.funct3 == 3);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rs2 == 0b00010);
+	REQUIRE(a.rd ==  0b00011);
+}
+
+TEST_CASE("I-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b00000000000100001000000010010011);
+	REQUIRE(a.funct3 == 0);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rd ==  0b00001);
+	REQUIRE(a.simm ==  1);
+	
+	a = decode_instruction(0b11111111111000001011000010010011);
+	REQUIRE(a.funct3 == 3);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rd ==  0b00001);
+	REQUIRE(a.simm ==  -2);
+}
+
+TEST_CASE("S-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b00000000000100001000000010100011);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rs2 == 0b00001);
+	REQUIRE(a.simm ==  1);
+	
+	a = decode_instruction(0b11111110111100001000111100100011);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rs2 == 0b01111);
+	REQUIRE(a.simm ==  -2);
+}
+
+TEST_CASE("B-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b00000000000100001001000101100011);
+	REQUIRE(a.rs1 == 0b00001);
+	REQUIRE(a.rs2 == 0b00001);
+	REQUIRE(a.simm ==  2);
+	
+	a = decode_instruction(0b11111110000111111001111111100011);
+	REQUIRE(a.rs1 == 0b11111);
+	REQUIRE(a.rs2 == 0b00001);
+	REQUIRE(a.simm ==  -2);
+}
+
+TEST_CASE("U-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b00000000000000000001000010110111);
+	REQUIRE(a.rd == 0b00001);
+	REQUIRE(a.simm ==  4096);
+	
+	a = decode_instruction(0b11111111111111111111111110010111);
+	REQUIRE(a.rd == 0b11111);
+	REQUIRE(a.simm ==  -4096);
+}
+
+TEST_CASE("J-Type Upacking", "[decoding]") {
+	auto a = decode_instruction(0b11111111100111111111000001101111);
+	REQUIRE(a.rd == 0b00000);
+	REQUIRE(a.simm ==  -8);
+	
+	a = decode_instruction(0b00000000100000000000111111101111);
+	REQUIRE(a.rd == 0b11111);
+	REQUIRE(a.simm ==  8);
+}
