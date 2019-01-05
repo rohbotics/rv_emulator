@@ -5,6 +5,8 @@ set (CMAKE_CXX_STANDARD 14)
 include_directories(src)
 
 add_executable(rv_emulator src/main.cpp src/decoding.cpp)
+target_compile_options(rv_emulator PRIVATE -Wall -Wextra -pedantic)
+
 
 ## TESTING ##
 add_subdirectory(external/Catch2)

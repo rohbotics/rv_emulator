@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdint>
+#include <stdexcept>
 
 #include <unistd.h>
 #include "decoding.h"
@@ -139,7 +140,7 @@ uint32_t program[10] = {
                     0b11111111100111111111000001101111  // JAL x0, -8
                   };
 
-int END_PROGRAM = 5;
+unsigned int END_PROGRAM = 5;
 
 int main(int argc, char* argv[]) {
 	uint32_t program_counter = 0;
@@ -169,6 +170,8 @@ int main(int argc, char* argv[]) {
 					pc_set= true;
 				}
 				break;
+			default:
+				throw std::runtime_error("unhandled instruction");
 		}
 		if (!pc_set)
 			program_counter++;
