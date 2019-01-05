@@ -3,6 +3,10 @@ matrix:
         include: 
         - os: linux
           dist: xenial
+          compiler: gcc
+        - os: linux
+          dist: xenial
+          compiler: clang
         - os: osx
 
 script:
