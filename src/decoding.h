@@ -75,10 +75,6 @@ constexpr inline uint8_t get_rd(uint32_t inst) {
     return ((inst >> 7) & 0x1F);
 }
 
-constexpr inline foo() {
-    return foo;
-}
-
 constexpr inline uint8_t get_rs1(uint32_t inst) {
     return ((inst >> 15) & 0x1F);
 }
