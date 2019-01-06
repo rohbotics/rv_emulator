@@ -114,121 +114,111 @@ constexpr static Instruction unpack_instruction_J(Instruction& in, uint32_t raw_
     return in;
 }
 
-Instruction decode_instruction(uint32_t raw_inst) {
-    Instruction in = {};
-
+Instruction::Instruction(uint32_t raw_inst) {
     switch (get_opcode(raw_inst)) {
         case Opcodes::LUI: {
-            unpack_instruction_U(in, raw_inst);
-            in.operation = Operations::LUI;
-            return in;
+            unpack_instruction_U(*this, raw_inst);
+            operation = Operations::LUI;
             break;
         }
         case Opcodes::AUIPC: {
-            unpack_instruction_U(in, raw_inst);
-            in.operation = Operations::AUIPC;
-            return in;
+            unpack_instruction_U(*this, raw_inst);
+            operation = Operations::AUIPC;
             break;
         }
         case Opcodes::JAL: {
-            unpack_instruction_J(in, raw_inst);
-            in.operation = Operations::JAL;
-            return in;
+            unpack_instruction_J(*this, raw_inst);
+            operation = Operations::JAL;
             break;
         }
         case Opcodes::JALR: {
-            unpack_instruction_I(in, raw_inst);
-            in.operation = Operations::JALR;
-            return in;
+            unpack_instruction_I(*this, raw_inst);
+            operation = Operations::JALR;
             break;
         }
         case Opcodes::BRANCH: {
-            unpack_instruction_B(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_B(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    in.operation = Operations::BEQ;
+                    operation = Operations::BEQ;
                     break;
                 case 0b001:
-                    in.operation = Operations::BNE;
+                    operation = Operations::BNE;
                     break;
                 case 0b100:
-                    in.operation = Operations::BLT;
+                    operation = Operations::BLT;
                     break;
                 case 0b101:
-                    in.operation = Operations::BGE;
+                    operation = Operations::BGE;
                     break;
                 case 0b110:
-                    in.operation = Operations::BLTU;
+                    operation = Operations::BLTU;
                     break;
                 case 0b111:
-                    in.operation = Operations::BGEU;
+                    operation = Operations::BGEU;
                     break;
             }
-
-            return in;
             break;
         }
         case Opcodes::LOAD: {
-            unpack_instruction_I(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_I(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    in.operation = Operations::LB;
+                    operation = Operations::LB;
                     break;
                 case 0b001:
-                    in.operation = Operations::LH;
+                    operation = Operations::LH;
                     break;
                 case 0b010:
-                    in.operation = Operations::LW;
+                    operation = Operations::LW;
                     break;
                 case 0b100:
-                    in.operation = Operations::LBU;
+                    operation = Operations::LBU;
                     break;
                 case 0b101:
-                    in.operation = Operations::LHU;
+                    operation = Operations::LHU;
                     break;
             }
-            return in;
             break;
         }
         case Opcodes::STORE: {
-            unpack_instruction_S(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_S(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    in.operation = Operations::SB;
+                    operation = Operations::SB;
                     break;
                 case 0b001:
-                    in.operation = Operations::SH;
+                    operation = Operations::SH;
                     break;
                 case 0b010:
-                    in.operation = Operations::SW;
+                    operation = Operations::SW;
                     break;
             }
-            return in;
             break;
         }
         case Opcodes::ARITH_IMM: {
-            unpack_instruction_I(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_I(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    in.operation = Operations::ADDI;
+                    operation = Operations::ADDI;
                     break;
                 case 0b010:
-                    in.operation = Operations::SLTI;
+                    operation = Operations::SLTI;
                     break;
                 case 0b011:
-                    in.operation = Operations::SLTIU;
+                    operation = Operations::SLTIU;
                     break;
                 case 0b100:
-                    in.operation = Operations::XORI;
+                    operation = Operations::XORI;
                     break;
                 case 0b110:
-                    in.operation = Operations::ORI;
+                    operation = Operations::ORI;
                     break;
                 case 0b111:
-                    in.operation = Operations::ANDI;
+                    operation = Operations::ANDI;
                     break;
                 case 0b001:
-                    in.operation = Operations::SLLI;
+                    operation = Operations::SLLI;
                     break;
                 case 0b101:
                     // Shift right instruction uses 5 bit
@@ -236,70 +226,66 @@ Instruction decode_instruction(uint32_t raw_inst) {
                     // funct7 for what type of shift
                     uint8_t funct7 = get_funct7(raw_inst);
                     if (funct7 == 0) {
-                        in.operation = Operations::SRLI;
+                        operation = Operations::SRLI;
                     } else {
-                        in.operation = Operations::SRAI;
-                        in.imm = in.imm & 0x1F;
+                        operation = Operations::SRAI;
+                        imm = imm & 0x1F;
                     }
                     break;
             }
-            return in;
             break;
         }
         case Opcodes::ARITH: {
-            unpack_instruction_R(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_R(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    if (in.funct7 == 0) {
-                        in.operation = Operations::ADD;
+                    if (funct7 == 0) {
+                        operation = Operations::ADD;
                     } else {
-                        in.operation = Operations::SUB;
+                        operation = Operations::SUB;
                     }
                     break;
                 case 0b001:
-                    in.operation = Operations::SLL;
+                    operation = Operations::SLL;
                     break;
                 case 0b010:
-                    in.operation = Operations::SLT;
+                    operation = Operations::SLT;
                     break;
                 case 0b011:
-                    in.operation = Operations::SLTU;
+                    operation = Operations::SLTU;
                     break;
                 case 0b100:
-                    in.operation = Operations::XOR;
+                    operation = Operations::XOR;
                     break;
                 case 0b101:
-                    if (in.funct7 == 0) {
-                        in.operation = Operations::SRL;
+                    if (funct7 == 0) {
+                        operation = Operations::SRL;
                     } else {
-                        in.operation = Operations::SRA;
+                        operation = Operations::SRA;
                     }
                     break;
                 case 0b110:
-                    in.operation = Operations::OR;
+                    operation = Operations::OR;
                     break;
                 case 0b111:
-                    in.operation = Operations::AND;
+                    operation = Operations::AND;
                     break;
             }
-            return in;
             break;
         }
         case Opcodes::FENCE: {
-            unpack_instruction_I(in, raw_inst);
-            switch (in.funct3) {
+            unpack_instruction_I(*this, raw_inst);
+            switch (funct3) {
                 case 0b000:
-                    in.operation = Operations::FENCE;
+                    operation = Operations::FENCE;
                     break;
                 case 0b001:
-                    in.operation = Operations::FENCEI;
+                    operation = Operations::FENCEI;
                     break;
             }
-            return in;
             break;
         }
     }
 
-    // TODO: If we get here then we should throw an unknown instruction error
-    return in;
 }
+

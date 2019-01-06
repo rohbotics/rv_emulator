@@ -24,7 +24,7 @@ int main() {
 
     while (program_counter < END_PROGRAM) {
         const auto raw_inst = program[program_counter];
-        const auto inst = decode_instruction(raw_inst);
+        const auto inst = Instruction(raw_inst);
         puts("-----------------------------------------");
         fmt::print("{}\n", inst);
 

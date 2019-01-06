@@ -57,9 +57,10 @@ struct Instruction {
 
     uint32_t imm;
     int32_t simm;  // sign extended version
-};
 
-Instruction decode_instruction(uint32_t raw_inst);
+    Instruction() = default;
+    explicit Instruction (uint32_t raw_inst);
+};
 
 namespace fmt
 {
