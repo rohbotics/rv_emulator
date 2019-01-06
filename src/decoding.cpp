@@ -1,5 +1,8 @@
 #include "decoding.h"
 
+// Annonymous namespace for hiding implementation details
+namespace {
+
 enum class Opcodes {
     LUI = 0b0110111,
     AUIPC = 0b0010111,
@@ -42,7 +45,7 @@ constexpr inline uint8_t get_funct3(uint32_t inst) {
 constexpr inline uint8_t get_funct7(uint32_t inst) {
     return ((inst >> 25) & 0x7F);
 }
-constexpr inline static Opcodes get_opcode(uint32_t inst) {
+constexpr inline Opcodes get_opcode(uint32_t inst) {
     uint8_t opcode = inst & 0x7f;
     return static_cast<Opcodes>(opcode);
 }
@@ -50,7 +53,7 @@ constexpr inline static Opcodes get_opcode(uint32_t inst) {
 /*** Unpacking functions ***/
 // NOTE: These could be part of the class, but I don't want to put them in the header file,
 // even if they are private
-constexpr static Instruction unpack_instruction_R(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_R(Instruction& in, uint32_t raw_inst) {
     in.funct7 = get_funct7(raw_inst);
     in.funct3 = get_funct3(raw_inst);
     in.rs1 = get_rs1(raw_inst);
@@ -59,7 +62,7 @@ constexpr static Instruction unpack_instruction_R(Instruction& in, uint32_t raw_
     return in;
 }
 
-constexpr static Instruction unpack_instruction_I(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_I(Instruction& in, uint32_t raw_inst) {
     in.funct3 = get_funct3(raw_inst);
     in.rs1 = get_rs1(raw_inst);
     in.rd = get_rd(raw_inst);
@@ -68,7 +71,7 @@ constexpr static Instruction unpack_instruction_I(Instruction& in, uint32_t raw_
     return in;
 }
 
-constexpr static Instruction unpack_instruction_S(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_S(Instruction& in, uint32_t raw_inst) {
     in.funct3 = get_funct3(raw_inst);
     in.rs1 = get_rs1(raw_inst);
     in.rs2 = get_rs2(raw_inst);
@@ -80,7 +83,7 @@ constexpr static Instruction unpack_instruction_S(Instruction& in, uint32_t raw_
     return in;
 }
 
-constexpr static Instruction unpack_instruction_B(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_B(Instruction& in, uint32_t raw_inst) {
     in.funct3 = get_funct3(raw_inst);
     in.rs1 = get_rs1(raw_inst);
     in.rs2 = get_rs2(raw_inst);
@@ -94,7 +97,7 @@ constexpr static Instruction unpack_instruction_B(Instruction& in, uint32_t raw_
     return in;
 }
 
-constexpr static Instruction unpack_instruction_U(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_U(Instruction& in, uint32_t raw_inst) {
     in.rd = get_rd(raw_inst);
     in.imm = (raw_inst & 0xFFFFF000);
     in.simm = in.imm;  // sign extenstion not needed because
@@ -102,7 +105,7 @@ constexpr static Instruction unpack_instruction_U(Instruction& in, uint32_t raw_
     return in;
 }
 
-constexpr static Instruction unpack_instruction_J(Instruction& in, uint32_t raw_inst) {
+constexpr Instruction unpack_instruction_J(Instruction& in, uint32_t raw_inst) {
     in.rd = get_rd(raw_inst);
 
     in.imm = 0;
@@ -113,6 +116,7 @@ constexpr static Instruction unpack_instruction_J(Instruction& in, uint32_t raw_
     in.simm = signextend<int32_t, 21>(in.imm);
     return in;
 }
+}  // namespace
 
 Instruction::Instruction(uint32_t raw_inst) {
     switch (get_opcode(raw_inst)) {
