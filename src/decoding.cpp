@@ -13,191 +13,222 @@ enum class Opcodes {
     FENCE = 0b0001111
 };
 
+/*** Inline utility functions ***/
+template <typename T, unsigned B>
+constexpr inline T signextend(const T x) {
+    static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
+    struct {
+        T x : B;
+    } s = { 0 };
+    return s.x = x;
+}
+
+constexpr inline uint8_t get_rd(uint32_t inst) {
+    return ((inst >> 7) & 0x1F);
+}
+
+constexpr inline uint8_t get_rs1(uint32_t inst) {
+    return ((inst >> 15) & 0x1F);
+}
+
+constexpr inline uint8_t get_rs2(uint32_t inst) {
+    return ((inst >> 20) & 0x1F);
+}
+
+constexpr inline uint8_t get_funct3(uint32_t inst) {
+    return ((inst >> 12) & 0x07);
+}
+
+constexpr inline uint8_t get_funct7(uint32_t inst) {
+    return ((inst >> 25) & 0x7F);
+}
 constexpr inline static Opcodes get_opcode(uint32_t inst) {
     uint8_t opcode = inst & 0x7f;
     return static_cast<Opcodes>(opcode);
 }
 
-constexpr static Instruction unpack_instruction_R(uint32_t raw_inst) {
-    Instruction el = {};
-    el.funct7 = get_funct7(raw_inst);
-    el.funct3 = get_funct3(raw_inst);
-    el.rs1 = get_rs1(raw_inst);
-    el.rs2 = get_rs2(raw_inst);
-    el.rd = get_rd(raw_inst);
-    return el;
+/*** Unpacking functions ***/
+// NOTE: These could be part of the class, but I don't want to put them in the header file,
+// even if they are private
+constexpr static Instruction unpack_instruction_R(Instruction& in, uint32_t raw_inst) {
+    in.funct7 = get_funct7(raw_inst);
+    in.funct3 = get_funct3(raw_inst);
+    in.rs1 = get_rs1(raw_inst);
+    in.rs2 = get_rs2(raw_inst);
+    in.rd = get_rd(raw_inst);
+    return in;
 }
-constexpr static Instruction unpack_instruction_I(uint32_t raw_inst) {
-    Instruction el = {};
-    el.funct3 = get_funct3(raw_inst);
-    el.rs1 = get_rs1(raw_inst);
-    el.rd = get_rd(raw_inst);
-    el.imm = (raw_inst >> 20) & 0xFFF;
-    el.simm = signextend<int32_t, 12>(el.imm);
-    return el;
-}
-constexpr static Instruction unpack_instruction_S(uint32_t raw_inst) {
-    Instruction el = {};
-    el.funct3 = get_funct3(raw_inst);
-    el.rs1 = get_rs1(raw_inst);
-    el.rs2 = get_rs2(raw_inst);
 
-    el.imm = 0;
-    el.imm = ((raw_inst >> 7) & 0b000000011111);
-    el.imm = el.imm | ((raw_inst >> 20) & 0b111111100000);
-    el.simm = signextend<int32_t, 12>(el.imm);
-    return el;
+constexpr static Instruction unpack_instruction_I(Instruction& in, uint32_t raw_inst) {
+    in.funct3 = get_funct3(raw_inst);
+    in.rs1 = get_rs1(raw_inst);
+    in.rd = get_rd(raw_inst);
+    in.imm = (raw_inst >> 20) & 0xFFF;
+    in.simm = signextend<int32_t, 12>(in.imm);
+    return in;
 }
-constexpr static Instruction unpack_instruction_B(uint32_t raw_inst) {
-    Instruction el = {};
-    el.funct3 = get_funct3(raw_inst);
-    el.rs1 = get_rs1(raw_inst);
-    el.rs2 = get_rs2(raw_inst);
 
-    el.imm = 0;
-    el.imm = ((raw_inst >> 7) & 0b0000000011110);
-    el.imm = el.imm | ((raw_inst >> 20) & 0b0011111100000);
-    el.imm = el.imm | ((raw_inst << 4) & 0b0100000000000);
-    el.imm = el.imm | ((raw_inst >> 19) & 0b1000000000000);
-    el.simm = signextend<int32_t, 13>(el.imm);
-    return el;
+constexpr static Instruction unpack_instruction_S(Instruction& in, uint32_t raw_inst) {
+    in.funct3 = get_funct3(raw_inst);
+    in.rs1 = get_rs1(raw_inst);
+    in.rs2 = get_rs2(raw_inst);
+
+    in.imm = 0;
+    in.imm = ((raw_inst >> 7) & 0b000000011111);
+    in.imm = in.imm | ((raw_inst >> 20) & 0b111111100000);
+    in.simm = signextend<int32_t, 12>(in.imm);
+    return in;
 }
-constexpr static Instruction unpack_instruction_U(uint32_t raw_inst) {
-    Instruction el = {};
-    el.rd = get_rd(raw_inst);
-    el.imm = (raw_inst & 0xFFFFF000);
-    el.simm = el.imm;  // sign extenstion not needed because
+
+constexpr static Instruction unpack_instruction_B(Instruction& in, uint32_t raw_inst) {
+    in.funct3 = get_funct3(raw_inst);
+    in.rs1 = get_rs1(raw_inst);
+    in.rs2 = get_rs2(raw_inst);
+
+    in.imm = 0;
+    in.imm = ((raw_inst >> 7) & 0b0000000011110);
+    in.imm = in.imm | ((raw_inst >> 20) & 0b0011111100000);
+    in.imm = in.imm | ((raw_inst << 4) & 0b0100000000000);
+    in.imm = in.imm | ((raw_inst >> 19) & 0b1000000000000);
+    in.simm = signextend<int32_t, 13>(in.imm);
+    return in;
+}
+
+constexpr static Instruction unpack_instruction_U(Instruction& in, uint32_t raw_inst) {
+    in.rd = get_rd(raw_inst);
+    in.imm = (raw_inst & 0xFFFFF000);
+    in.simm = in.imm;  // sign extenstion not needed because
                        // most significant bit doesn't move
-    return el;
+    return in;
 }
-constexpr static Instruction unpack_instruction_J(uint32_t raw_inst) {
-    Instruction el = {};
-    el.rd = get_rd(raw_inst);
 
-    el.imm = 0;
-    el.imm = ((raw_inst >> 20) & 0b000000000011111111110);
-    el.imm = el.imm | ((raw_inst >> 9) & 0b000000000100000000000);
-    el.imm = el.imm | ((raw_inst)&0b011111111000000000000);
-    el.imm = el.imm | ((raw_inst >> 11) & 0b100000000000000000000);
-    el.simm = signextend<int32_t, 21>(el.imm);
-    return el;
+constexpr static Instruction unpack_instruction_J(Instruction& in, uint32_t raw_inst) {
+    in.rd = get_rd(raw_inst);
+
+    in.imm = 0;
+    in.imm = ((raw_inst >> 20) & 0b000000000011111111110);
+    in.imm = in.imm | ((raw_inst >> 9) & 0b000000000100000000000);
+    in.imm = in.imm | ((raw_inst)&0b011111111000000000000);
+    in.imm = in.imm | ((raw_inst >> 11) & 0b100000000000000000000);
+    in.simm = signextend<int32_t, 21>(in.imm);
+    return in;
 }
 
 Instruction decode_instruction(uint32_t raw_inst) {
-    Instruction el = {};
+    Instruction in = {};
 
     switch (get_opcode(raw_inst)) {
         case Opcodes::LUI: {
-            el = unpack_instruction_U(raw_inst);
-            el.operation = Operations::LUI;
-            return el;
+            unpack_instruction_U(in, raw_inst);
+            in.operation = Operations::LUI;
+            return in;
             break;
         }
         case Opcodes::AUIPC: {
-            el = unpack_instruction_U(raw_inst);
-            el.operation = Operations::AUIPC;
-            return el;
+            unpack_instruction_U(in, raw_inst);
+            in.operation = Operations::AUIPC;
+            return in;
             break;
         }
         case Opcodes::JAL: {
-            el = unpack_instruction_J(raw_inst);
-            el.operation = Operations::JAL;
-            return el;
+            unpack_instruction_J(in, raw_inst);
+            in.operation = Operations::JAL;
+            return in;
             break;
         }
         case Opcodes::JALR: {
-            el = unpack_instruction_I(raw_inst);
-            el.operation = Operations::JALR;
-            return el;
+            unpack_instruction_I(in, raw_inst);
+            in.operation = Operations::JALR;
+            return in;
             break;
         }
         case Opcodes::BRANCH: {
-            el = unpack_instruction_B(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_B(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    el.operation = Operations::BEQ;
+                    in.operation = Operations::BEQ;
                     break;
                 case 0b001:
-                    el.operation = Operations::BNE;
+                    in.operation = Operations::BNE;
                     break;
                 case 0b100:
-                    el.operation = Operations::BLT;
+                    in.operation = Operations::BLT;
                     break;
                 case 0b101:
-                    el.operation = Operations::BGE;
+                    in.operation = Operations::BGE;
                     break;
                 case 0b110:
-                    el.operation = Operations::BLTU;
+                    in.operation = Operations::BLTU;
                     break;
                 case 0b111:
-                    el.operation = Operations::BGEU;
+                    in.operation = Operations::BGEU;
                     break;
             }
 
-            return el;
+            return in;
             break;
         }
         case Opcodes::LOAD: {
-            el = unpack_instruction_I(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_I(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    el.operation = Operations::LB;
+                    in.operation = Operations::LB;
                     break;
                 case 0b001:
-                    el.operation = Operations::LH;
+                    in.operation = Operations::LH;
                     break;
                 case 0b010:
-                    el.operation = Operations::LW;
+                    in.operation = Operations::LW;
                     break;
                 case 0b100:
-                    el.operation = Operations::LBU;
+                    in.operation = Operations::LBU;
                     break;
                 case 0b101:
-                    el.operation = Operations::LHU;
+                    in.operation = Operations::LHU;
                     break;
             }
-            return el;
+            return in;
             break;
         }
         case Opcodes::STORE: {
-            el = unpack_instruction_S(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_S(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    el.operation = Operations::SB;
+                    in.operation = Operations::SB;
                     break;
                 case 0b001:
-                    el.operation = Operations::SH;
+                    in.operation = Operations::SH;
                     break;
                 case 0b010:
-                    el.operation = Operations::SW;
+                    in.operation = Operations::SW;
                     break;
             }
-            return el;
+            return in;
             break;
         }
         case Opcodes::ARITH_IMM: {
-            el = unpack_instruction_I(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_I(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    el.operation = Operations::ADDI;
+                    in.operation = Operations::ADDI;
                     break;
                 case 0b010:
-                    el.operation = Operations::SLTI;
+                    in.operation = Operations::SLTI;
                     break;
                 case 0b011:
-                    el.operation = Operations::SLTIU;
+                    in.operation = Operations::SLTIU;
                     break;
                 case 0b100:
-                    el.operation = Operations::XORI;
+                    in.operation = Operations::XORI;
                     break;
                 case 0b110:
-                    el.operation = Operations::ORI;
+                    in.operation = Operations::ORI;
                     break;
                 case 0b111:
-                    el.operation = Operations::ANDI;
+                    in.operation = Operations::ANDI;
                     break;
                 case 0b001:
-                    el.operation = Operations::SLLI;
+                    in.operation = Operations::SLLI;
                     break;
                 case 0b101:
                     // Shift right instruction uses 5 bit
@@ -205,70 +236,70 @@ Instruction decode_instruction(uint32_t raw_inst) {
                     // funct7 for what type of shift
                     uint8_t funct7 = get_funct7(raw_inst);
                     if (funct7 == 0) {
-                        el.operation = Operations::SRLI;
+                        in.operation = Operations::SRLI;
                     } else {
-                        el.operation = Operations::SRAI;
-                        el.imm = el.imm & 0x1F;
+                        in.operation = Operations::SRAI;
+                        in.imm = in.imm & 0x1F;
                     }
                     break;
             }
-            return el;
+            return in;
             break;
         }
         case Opcodes::ARITH: {
-            el = unpack_instruction_R(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_R(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    if (el.funct7 == 0) {
-                        el.operation = Operations::ADD;
+                    if (in.funct7 == 0) {
+                        in.operation = Operations::ADD;
                     } else {
-                        el.operation = Operations::SUB;
+                        in.operation = Operations::SUB;
                     }
                     break;
                 case 0b001:
-                    el.operation = Operations::SLL;
+                    in.operation = Operations::SLL;
                     break;
                 case 0b010:
-                    el.operation = Operations::SLT;
+                    in.operation = Operations::SLT;
                     break;
                 case 0b011:
-                    el.operation = Operations::SLTU;
+                    in.operation = Operations::SLTU;
                     break;
                 case 0b100:
-                    el.operation = Operations::XOR;
+                    in.operation = Operations::XOR;
                     break;
                 case 0b101:
-                    if (el.funct7 == 0) {
-                        el.operation = Operations::SRL;
+                    if (in.funct7 == 0) {
+                        in.operation = Operations::SRL;
                     } else {
-                        el.operation = Operations::SRA;
+                        in.operation = Operations::SRA;
                     }
                     break;
                 case 0b110:
-                    el.operation = Operations::OR;
+                    in.operation = Operations::OR;
                     break;
                 case 0b111:
-                    el.operation = Operations::AND;
+                    in.operation = Operations::AND;
                     break;
             }
-            return el;
+            return in;
             break;
         }
         case Opcodes::FENCE: {
-            el = unpack_instruction_I(raw_inst);
-            switch (el.funct3) {
+            unpack_instruction_I(in, raw_inst);
+            switch (in.funct3) {
                 case 0b000:
-                    el.operation = Operations::FENCE;
+                    in.operation = Operations::FENCE;
                     break;
                 case 0b001:
-                    el.operation = Operations::FENCEI;
+                    in.operation = Operations::FENCEI;
                     break;
             }
-            return el;
+            return in;
             break;
         }
     }
 
     // TODO: If we get here then we should throw an unknown instruction error
-    return el;
+    return in;
 }
