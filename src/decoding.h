@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <fmt/format.h>
 
@@ -59,6 +61,8 @@ struct Instruction {
     int32_t simm;  // sign extended version
 
     Instruction() = default;
+
+    explicit Instruction(Operations op) : operation(op) {};
     explicit Instruction (uint32_t raw_inst);
 };
 
