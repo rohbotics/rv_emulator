@@ -1,3 +1,4 @@
+#include <type_traits>
 #include "decoding.h"
 
 // Annonymous namespace for hiding implementation details
@@ -17,15 +18,19 @@ enum class Opcodes {
 };
 
 /*** Inline utility functions ***/
+
+// Adapted from http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
 template <typename T, unsigned B>
 constexpr inline T signextend(const T x) {
     static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
+    static_assert(std::is_signed<T>::value, "return must be of signed type or else this function invokes undefined behavior");
     struct {
         T x : B;
     } s = { 0 };
     return s.x = x;
 }
 
+// These pull out common parts of instructions
 constexpr inline uint8_t get_rd(uint32_t inst) {
     return ((inst >> 7) & 0x1F);
 }
@@ -51,8 +56,9 @@ constexpr inline Opcodes get_opcode(uint32_t inst) {
 }
 
 /*** Unpacking functions ***/
+
 // NOTE: These could be part of the class, but I don't want to put them in the header file,
-// even if they are private
+// even if they are as private functions
 constexpr Instruction unpack_instruction_R(Instruction& in, uint32_t raw_inst) {
     in.funct7 = get_funct7(raw_inst);
     in.funct3 = get_funct3(raw_inst);
@@ -116,8 +122,10 @@ constexpr Instruction unpack_instruction_J(Instruction& in, uint32_t raw_inst) {
     in.simm = signextend<int32_t, 21>(in.imm);
     return in;
 }
+
 }  // namespace
 
+// This constructor should be the only publically visible function
 Instruction::Instruction(uint32_t raw_inst) {
     switch (get_opcode(raw_inst)) {
         case Opcodes::LUI: {
@@ -231,6 +239,7 @@ Instruction::Instruction(uint32_t raw_inst) {
                     uint8_t funct7 = get_funct7(raw_inst);
                     if (funct7 == 0) {
                         operation = Operations::SRLI;
+                        imm = imm & 0x1F;
                     } else {
                         operation = Operations::SRAI;
                         imm = imm & 0x1F;
