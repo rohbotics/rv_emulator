@@ -157,7 +157,7 @@ struct formatter<Instruction> {
             case Operations::FENCEI:
                 return format_to(ctx.begin(), "FENCEI");
         }
-        return format_to(ctx.begin(), "Error formatting");
+        return format_to(ctx.begin(), "");
     }
 };
 }  // namespace fmt
