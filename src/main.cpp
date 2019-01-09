@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 #include "decoding.h"
+#include "registers.h"
 
-int32_t registers[32] = {};
 uint32_t program[10] = {
     0b00000000111100000000010110010011,  // set x11 to 15
     0b00000000000100000000010100010011,  // set x10 to 0
@@ -15,8 +15,9 @@ uint32_t program[10] = {
     0b00000000101001011100010001100011,  // BLT x11, x10, +8
     0b11111111100111111111000001101111   // JAL x0, -8
 };
-
 unsigned int END_PROGRAM = 5;
+
+Registers registers;
 
 int main() {
     uint32_t program_counter = 0;
@@ -31,17 +32,16 @@ int main() {
         bool pc_set = false;
         switch (inst.operation) {
             case Operations::ADDI:
-                if (inst.rd != 0)
-                    registers[inst.rd] = registers[inst.rs1] + inst.simm;
+                registers.set(inst.rd, registers.get(inst.rs1) + inst.simm);
                 break;
             case Operations::JAL:
                 if (inst.rd != 0)
-                    registers[inst.rd] = program_counter + 1;
+                    registers.set(inst.rd, program_counter + 1);
                 program_counter += (inst.simm / 4);
                 pc_set = true;
                 break;
             case Operations::BLT:
-                if (registers[inst.rs1] < registers[inst.rs2]) {
+                if (registers.get(inst.rs1) < registers.get(inst.rs2)) {
                     program_counter += (inst.simm / 4);
                     pc_set = true;
                 }

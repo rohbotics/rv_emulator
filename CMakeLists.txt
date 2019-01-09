@@ -6,7 +6,7 @@ include_directories(src)
 
 add_subdirectory(external/fmt)
 
-add_library(rv STATIC src/decoding.cpp)
+add_library(rv STATIC src/decoding.cpp src/registers.cpp)
 target_link_libraries(rv PUBLIC fmt::fmt)
 target_compile_options(rv PRIVATE -Wall -Wextra -pedantic)
 
@@ -33,7 +33,11 @@ add_executable(rv_format_tests tests/format_test.cpp)
 target_link_libraries(rv_format_tests test_main rv)
 add_test(NAME FormatTests COMMAND rv_format_tests)
 
-add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp)
+add_executable(rv_registers_test tests/registers_test.cpp)
+target_link_libraries(rv_registers_test test_main rv)
+add_test(NAME RegisterTests COMMAND rv_registers_test)
+
+add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp tests/registers_test.cpp)
 target_link_libraries(rv_tests test_main rv)
 
 if(ENABLE_COVERAGE)
