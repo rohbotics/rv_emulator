@@ -31,20 +31,75 @@ int main() {
 
         bool pc_set = false;
         switch (inst.operation) {
-            case Operations::ADDI:
-                registers.set(inst.rd, registers.get(inst.rs1) + inst.simm);
-                break;
             case Operations::JAL:
-                if (inst.rd != 0)
-                    registers.set(inst.rd, program_counter + 1);
+                registers.set(inst.rd, program_counter + 1);
                 program_counter += (inst.simm / 4);
                 pc_set = true;
                 break;
-            case Operations::BLT:
-                if (registers.get(inst.rs1) < registers.get(inst.rs2)) {
+            case Operations::BEQ: {
+                if (registers.get(inst.rs1) == registers.get(inst.rs2)) {
                     program_counter += (inst.simm / 4);
                     pc_set = true;
                 }
+                break;
+            }
+            case Operations::BNE: {
+                if (registers.get(inst.rs1) != registers.get(inst.rs2)) {
+                    program_counter += (inst.simm / 4);
+                    pc_set = true;
+                }
+                break;
+            }
+            case Operations::BLT: {
+                auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
+                auto rs2 = static_cast<int32_t>(registers.get(inst.rs2));
+                if (rs1 < rs2) {
+                    program_counter += (inst.simm / 4);
+                    pc_set = true;
+                }
+                break;
+            }
+            case Operations::BLTU: {
+                auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
+                auto rs2 = static_cast<uint32_t>(registers.get(inst.rs2));
+                if (rs1 < rs2) {
+                    program_counter += (inst.simm / 4);
+                    pc_set = true;
+                }
+                break;
+            }
+            case Operations::BGE: {
+                auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
+                auto rs2 = static_cast<int32_t>(registers.get(inst.rs2));
+                if (rs1 >= rs2) {
+                    program_counter += (inst.simm / 4);
+                    pc_set = true;
+                }
+                break;
+            }
+            case Operations::BGEU: {
+                auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
+                auto rs2 = static_cast<uint32_t>(registers.get(inst.rs2));
+                if (rs1 >= rs2) {
+                    program_counter += (inst.simm / 4);
+                    pc_set = true;
+                }
+                break;
+            }
+            case Operations::ADDI:
+                registers.set(inst.rd, registers.get(inst.rs1) + inst.simm);
+                break;
+            case Operations::ANDI:
+                registers.set(inst.rd, registers.get(inst.rs1) & inst.simm);
+                break;
+            case Operations::ORI:
+                registers.set(inst.rd, registers.get(inst.rs1) | inst.simm);
+                break;
+            case Operations::XORI:
+                registers.set(inst.rd, registers.get(inst.rs1) ^ inst.simm);
+                break;
+            case Operations::SLLI:
+                registers.set(inst.rd, registers.get(inst.rs1) << inst.simm);
                 break;
             default:
                 throw std::runtime_error("unhandled instruction");
