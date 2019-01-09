@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(rv_emulator LANGUAGES CXX)
 set (CMAKE_CXX_STANDARD 14)
 
-include_directories(src)
-
+# External Dependancies
 add_subdirectory(external/fmt)
+
+include_directories(src)
 
 add_library(rv STATIC src/decoding.cpp src/registers.cpp)
 target_link_libraries(rv PUBLIC fmt::fmt)
@@ -18,9 +19,6 @@ target_compile_options(rv_emulator PRIVATE -Wall -Wextra -pedantic)
 ## TESTING ##
 add_subdirectory(external/Catch2)
 enable_testing()
-
-# Add 'make check' which shows he output of catch on failure
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)
 
 add_library(test_main tests/test_main.cpp)
 target_link_libraries(test_main PUBLIC Catch2::Catch2)
@@ -40,6 +38,11 @@ add_test(NAME RegisterTests COMMAND rv_registers_test)
 add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp tests/registers_test.cpp)
 target_link_libraries(rv_tests test_main rv)
 
+# Add 'make check' which shows he output of catch on failure
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+                  DEPENDS rv_decoder_tests rv_format_tests rv_registers_test)
+
+## CODE COVERAGE WITH LCOV ##
 if(ENABLE_COVERAGE)
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
