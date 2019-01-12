@@ -99,8 +99,36 @@ int main() {
                 registers.set(inst.rd, registers.get(inst.rs1) ^ inst.simm);
                 break;
             case Operations::SLLI:
-                registers.set(inst.rd, registers.get(inst.rs1) << inst.simm);
+                registers.set(inst.rd, registers.get(inst.rs1) << inst.imm);
                 break;
+            // For right shifts
+            // https://stackoverflow.com/questions/7622/are-the-shift-operators-arithmetic-or-logical-in-c
+            case Operations::SRLI: {
+                auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
+                registers.set(inst.rd, rs1 >> inst.imm);
+                break;
+            }
+            case Operations::SRAI: {
+                auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
+                registers.set(inst.rd, rs1 >> inst.simm);
+                break;
+            }
+            case Operations::SLTI: {
+                auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
+                if (rs1 < inst.simm)
+                    registers.set(inst.rd, 1);
+                else
+                    registers.set(inst.rd, 0);
+                break;
+            }
+            case Operations::SLTIU: {
+                auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
+                if (rs1 < inst.imm)
+                    registers.set(inst.rd, 1);
+                else
+                    registers.set(inst.rd, 0);
+                break;
+            }
             default:
                 throw std::runtime_error("unhandled instruction");
         }
