@@ -5,7 +5,7 @@ set (CMAKE_CXX_STANDARD 14)
 # External Dependancies
 add_subdirectory(external/fmt)
 
-include_directories(src)
+include_directories(include)
 
 add_library(rv STATIC src/decoding.cpp src/registers.cpp)
 target_link_libraries(rv PUBLIC fmt::fmt)
