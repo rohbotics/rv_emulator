@@ -14,6 +14,7 @@ class Registers {
     uint32_t set(std::uint8_t reg, uint32_t value);
   private:
     enum {n_registers = 32}; // Ugly hack to avoid linker errors
+                             // Gives us a private constant
     uint32_t reg_arr[n_registers];
 };
 
