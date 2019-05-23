@@ -20,6 +20,9 @@ target_compile_options(rv_emulator PRIVATE -Wall -Wextra -pedantic)
 add_subdirectory(external/Catch2)
 enable_testing()
 
+# The main for catch takes a while to compile
+# We give it it's own translation unit so we only have to do it once
+# The dependancy on Catch is public so that it becomes transitive
 add_library(test_main tests/test_main.cpp)
 target_link_libraries(test_main PUBLIC Catch2::Catch2)
 
@@ -38,7 +41,7 @@ add_test(NAME RegisterTests COMMAND rv_registers_test)
 add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp tests/registers_test.cpp)
 target_link_libraries(rv_tests test_main rv)
 
-# Add 'make check' which shows he output of catch on failure
+# Add 'make check' which shows the output of catch on failure
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
                   DEPENDS rv_decoder_tests rv_format_tests rv_registers_test)
 
