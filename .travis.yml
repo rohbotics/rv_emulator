@@ -1,13 +1,24 @@
 language: cpp
 matrix:
-        include: 
+        include:
         - os: linux
           dist: xenial
           compiler: gcc
+          arch: amd64
         - os: linux
           dist: xenial
           compiler: clang
+          arch: amd64
+        - os: linux
+          dist: xenial
+          compiler: gcc
+          arch: arm64
+        - os: linux
+          dist: xenial
+          compiler: clang
+          arch: arm64
         - os: osx
+          arch: amd64
 
 script:
         - mkdir -p build; cd build
