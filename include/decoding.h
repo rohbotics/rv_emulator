@@ -87,17 +87,17 @@ struct formatter<Instruction> {
             case Operations::JALR:
                 return format_to(ctx.begin(), "JALR x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
             case Operations::BEQ:
-                return format_to(ctx.begin(), "BEQ x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BEQ (x{} = x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::BNE:
-                return format_to(ctx.begin(), "BNE x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BNE (x{} != x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::BLT:
-                return format_to(ctx.begin(), "BLT x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BLT (x{} < x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::BGE:
-                return format_to(ctx.begin(), "BGE x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BGE (x{} > x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::BLTU:
-                return format_to(ctx.begin(), "BLTU x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BLTU (x{} < x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::BGEU:
-                return format_to(ctx.begin(), "BGEU x{}, x{}, #{}", inst.rd, inst.rs1, inst.simm);
+                return format_to(ctx.begin(), "BGEU (x{} > x{}), PC + #{}", inst.rs1, inst.rs2, inst.simm);
             case Operations::LB:
                 return format_to(ctx.begin(), "LB x{} ← [x{} + {}]", inst.rd, inst.rs1, inst.simm);
             case Operations::LH:
