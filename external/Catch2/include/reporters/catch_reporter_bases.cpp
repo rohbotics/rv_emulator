@@ -36,11 +36,25 @@ namespace Catch {
 #ifdef _MSC_VER
         sprintf_s(buffer, "%.3f", duration);
 #else
-        sprintf(buffer, "%.3f", duration);
+        std::sprintf(buffer, "%.3f", duration);
 #endif
         return std::string(buffer);
     }
 
+    std::string serializeFilters( std::vector<std::string> const& container ) {
+        ReusableStringStream oss;
+        bool first = true;
+        for (auto&& filter : container)
+        {
+            if (!first)
+                oss << ' ';
+            else
+                first = false;
+
+            oss << filter;
+        }
+        return oss.str();
+    }
 
     TestEventListenerBase::TestEventListenerBase(ReporterConfig const & _config)
         :StreamingReporterBase(_config) {}

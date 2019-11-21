@@ -116,6 +116,27 @@ set_tests_properties(
 )
 
 
+add_executable(BenchmarkingMacros ${TESTS_DIR}/X20-BenchmarkingMacros.cpp)
+target_compile_definitions( BenchmarkingMacros PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING )
+
+add_test(NAME BenchmarkingMacros COMMAND BenchmarkingMacros -r console -s)
+set_tests_properties(
+    BenchmarkingMacros
+  PROPERTIES
+    PASS_REGULAR_EXPRESSION "benchmark name                                  samples       iterations    estimated"
+)
+
+# This test touches windows.h, so it should only be compiled under msvc
+if (MSVC)
+    # This test fails if it does not compile and succeeds otherwise
+    add_executable(WindowsHeader ${TESTS_DIR}/X90-WindowsHeaderInclusion.cpp)
+    set_property( TARGET WindowsHeader PROPERTY CXX_STANDARD 11 )
+    set_property( TARGET WindowsHeader PROPERTY CXX_STANDARD_REQUIRED ON )
+    set_property( TARGET WindowsHeader PROPERTY CXX_EXTENSIONS OFF )
+    target_include_directories( WindowsHeader PRIVATE ${SINGLE_INCLUDE_PATH} )
+    add_test(NAME WindowsHeader COMMAND WindowsHeader -r compact)
+endif()
+
 set( EXTRA_TEST_BINARIES
     PrefixedMacros
     DisabledMacros
@@ -123,6 +144,7 @@ set( EXTRA_TEST_BINARIES
     DisabledExceptions-CustomHandler
     FallbackStringifier
     DisableStringification
+    BenchmarkingMacros
 )
 
 # Shared config
@@ -132,4 +154,5 @@ foreach( test ${EXTRA_TEST_BINARIES} )
     set_property( TARGET ${test} PROPERTY CXX_EXTENSIONS OFF )
     target_include_directories( ${test} PRIVATE ${SINGLE_INCLUDE_PATH} )
 endforeach()
+
 
