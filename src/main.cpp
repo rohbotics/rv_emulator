@@ -120,6 +120,21 @@ int main() {
                     registers.set(inst.rd, 0);
                 break;
             }
+            case Operations::ADD:
+                registers.set(inst.rd, registers.get(inst.rs1) + registers.get(inst.rs2));
+                break;
+            case Operations::SUB:
+                registers.set(inst.rd, registers.get(inst.rs1) - registers.get(inst.rs2));
+                break;
+            case Operations::AND:
+                registers.set(inst.rd, registers.get(inst.rs1) & registers.get(inst.rs2));
+                break;
+            case Operations::OR:
+                registers.set(inst.rd, registers.get(inst.rs1) | registers.get(inst.rs2));
+                break;
+            case Operations::XOR:
+                registers.set(inst.rd, registers.get(inst.rs1) ^ registers.get(inst.rs2));
+                break;
             default:
                 throw std::runtime_error("unhandled instruction");
         }
