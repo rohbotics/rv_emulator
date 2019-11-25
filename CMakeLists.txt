@@ -7,7 +7,7 @@ add_subdirectory(external/fmt)
 
 include_directories(include)
 
-add_library(rv STATIC src/decoding.cpp src/registers.cpp)
+add_library(rv STATIC src/decoding.cpp src/registers.cpp src/core.cpp)
 target_link_libraries(rv PUBLIC fmt::fmt)
 target_compile_options(rv PRIVATE -Wall -Wextra -pedantic)
 
