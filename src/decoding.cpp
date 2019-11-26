@@ -14,8 +14,8 @@
    limitations under the License.
 */
 
-#include <type_traits>
 #include "decoding.h"
+#include "bit_utils.h"
 
 // Annonymous namespace for hiding implementation details
 namespace
@@ -34,18 +34,6 @@ enum class Opcodes {
 };
 
 /*** Inline utility functions ***/
-
-// Adapted from http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
-template <typename T, unsigned B>
-constexpr inline static T signextend(const T x) {
-    static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
-    static_assert(std::is_signed<T>::value, "return must be of signed type or else this function invokes undefined "
-                                            "behavior");
-    struct {
-        T x : B;
-    } s = { 0 };
-    return s.x = x;
-}
 
 // These pull out common parts of instructions
 constexpr inline uint8_t get_rd(uint32_t inst) {
