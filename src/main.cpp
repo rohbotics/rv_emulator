@@ -25,18 +25,16 @@ int main() {
 
     // Copy the program defined above into the memory
     // start the program at the initial PC value
-    uint8_t* prog_mem = &c.memory[c.program_counter];
+    auto pc_start = c.program_counter;
     for (unsigned int i = 0; i < END_PROGRAM; i++) {
-        prog_mem[4 * i] = program[i] & 0xFF;
-        prog_mem[(4 * i) + 1] = (program[i] >> 8) & 0xFF;
-        prog_mem[(4 * i) + 2] = (program[i] >> 16) & 0xFF;
-        prog_mem[(4 * i) + 3] = (program[i] >> 24) & 0xFF;
+        c.memory.store32(pc_start + (4 * i), program[i]);
     }
 
     uint32_t cycle = 1;
     while (c.program_counter < 0x100 + END_PROGRAM * 4) {
         c.execute();
-        printf("PC:%d, x10: %x, x11: %x, x12: %x \n", c.program_counter, c.registers[10], c.registers[11], c.registers[12]);
+        printf("PC:%d, x10: %x, x11: %x, x12: %x \n", c.program_counter, c.registers[10], c.registers[11],
+               c.registers[12]);
         usleep(500000);  // sleep for 500,000 microseconds (0.5 seconds)
         cycle++;
     }

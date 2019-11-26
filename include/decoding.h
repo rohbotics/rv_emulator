@@ -62,8 +62,8 @@ struct Instruction {
 
     Instruction() = default;
 
-    explicit Instruction(Operations op) : operation(op) {};
-    explicit Instruction (uint32_t raw_inst);
+    explicit Instruction(Operations op) : operation(op){};
+    explicit Instruction(uint32_t raw_inst);
 };
 
 namespace fmt
@@ -161,5 +161,3 @@ struct formatter<Instruction> {
     }
 };
 }  // namespace fmt
-
-

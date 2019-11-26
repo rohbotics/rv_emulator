@@ -2,8 +2,8 @@
 #include "decoding.h"
 
 // Annonymous namespace for hiding implementation details
-namespace {
-
+namespace
+{
 enum class Opcodes {
     LUI = 0b0110111,
     AUIPC = 0b0010111,
@@ -23,7 +23,8 @@ enum class Opcodes {
 template <typename T, unsigned B>
 constexpr inline static T signextend(const T x) {
     static_assert(sizeof(T) * 8 > B, "size of type must be larger than sign extended value");
-    static_assert(std::is_signed<T>::value, "return must be of signed type or else this function invokes undefined behavior");
+    static_assert(std::is_signed<T>::value, "return must be of signed type or else this function invokes undefined "
+                                            "behavior");
     struct {
         T x : B;
     } s = { 0 };
@@ -299,6 +300,4 @@ Instruction::Instruction(uint32_t raw_inst) {
             break;
         }
     }
-
 }
-

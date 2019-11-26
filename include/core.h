@@ -1,13 +1,14 @@
 #pragma once
 
-#include "decoding.h"
 #include "registers.h"
+#include "memory.h"
 
-class Core {
-public:
+class Core
+{
+  public:
     Core();
     uint32_t program_counter;
-    uint8_t* memory;
+    Memory memory;
     Registers registers;
 
     void execute();

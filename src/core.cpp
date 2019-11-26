@@ -1,13 +1,5 @@
 #include "core.h"
-
-static uint32_t fetch(uint8_t* instruction_mem) {
-    uint32_t inst = 0x00;
-    inst |= instruction_mem[0];
-    inst |= (instruction_mem[1] << 8);
-    inst |= (instruction_mem[2] << 16);
-    inst |= (instruction_mem[3] << 24);
-    return inst;
-}
+#include "decoding.h"
 
 // Adapted from http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
 template <typename T, unsigned B>
@@ -20,14 +12,11 @@ constexpr inline static T signextend(const T x) {
     return s.x = x;
 }
 
-
-Core::Core() {
-    memory = static_cast<uint8_t*>(malloc(128 * 1024));
+Core::Core() : memory(128 * 1024) {
 }
 
 void Core::execute() {
-    // const auto raw_inst = program[program_counter/4];
-    const auto raw_inst = fetch(&memory[program_counter]);
+    const auto raw_inst = memory.load32(program_counter);
     const auto inst = Instruction(raw_inst);
     puts("-----------------------------------------");
     fmt::print("@{}: {}\n", program_counter, inst);
@@ -180,62 +169,52 @@ void Core::execute() {
         }
         case Operations::LB: {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
-            uint8_t value = memory[rs1 + inst.simm];
+            uint8_t value = memory.load8(rs1 + inst.simm);
             registers.set(inst.rd, signextend<int32_t, 8>(value));
             break;
         }
         case Operations::LBU: {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
-            uint8_t value = memory[rs1 + inst.simm];
+            uint8_t value = memory.load8(rs1 + inst.simm);
             registers.set(inst.rd, value);
             break;
         }
         case Operations::LH: {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
-            uint16_t value = memory[rs1 + inst.simm];
-            value |= (memory[rs1 + inst.simm + 1] << 8);
+            uint16_t value = memory.load16(rs1 + inst.simm);
             registers.set(inst.rd, signextend<int32_t, 16>(value));
             break;
         }
         case Operations::LHU: {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
-            uint32_t value = memory[rs1 + inst.simm];
-            value |= (memory[rs1 + inst.simm + 1] << 8);
+            uint32_t value = memory.load16(rs1 + inst.simm);
             registers.set(inst.rd, value);
             break;
         }
         case Operations::LW: {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
-            uint32_t value = memory[rs1 + inst.simm];
-            value |= (memory[rs1 + inst.simm + 1] << 8);
-            value |= (memory[rs1 + inst.simm + 2] << 16);
-            value |= (memory[rs1 + inst.simm + 3] << 24);
+            uint32_t value = memory.load32(rs1 + inst.simm);
             registers.set(inst.rd, value);
             break;
         }
         case Operations::SB: {
             auto mem_addr = registers.get(inst.rs1) + inst.simm;
-            memory[mem_addr] = registers.get(inst.rs2) & 0xFF;
+            memory.store8(mem_addr, registers.get(inst.rs2) & 0xFF);
             break;
         }
         case Operations::SH: {
             auto mem_addr = registers.get(inst.rs1) + inst.simm;
             auto data = registers.get(inst.rs2);
-            memory[mem_addr] = data & 0xFF;
-            memory[mem_addr + 1] = (data >> 8) & 0xFF;
+            memory.store16(mem_addr, data);
             break;
         }
         case Operations::SW: {
             auto mem_addr = registers.get(inst.rs1) + inst.simm;
             auto data = registers.get(inst.rs2);
-            memory[mem_addr] = data & 0xFF;
-            memory[mem_addr + 1] = (data >> 8) & 0xFF;
-            memory[mem_addr + 2] = (data >> 16) & 0xFF;
-            memory[mem_addr + 3] = (data >> 24) & 0xFF;
+            memory.store32(mem_addr, data);
             break;
         }
         default:
             throw std::runtime_error("unhandled instruction");
     }
 }
-
