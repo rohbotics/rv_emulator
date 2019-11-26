@@ -1,6 +1,6 @@
 #include "memory.h"
 
-Memory::Memory(size_t bytes) : raw_mem(bytes, 0) {
+Memory::Memory(size_t n_bytes) : raw_mem(n_bytes, 0) {
 }
 
 uint32_t Memory::load32(uint32_t addr) {

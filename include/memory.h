@@ -6,7 +6,7 @@
 class Memory
 {
   public:
-    explicit Memory(size_t bytes);
+    explicit Memory(size_t n_bytes);
 
     uint32_t load32(uint32_t addr);
     uint16_t load16(uint32_t addr);
