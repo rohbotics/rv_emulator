@@ -1,12 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 class Memory
 {
   public:
-    explicit Memory(size_t n_bytes);
+    explicit Memory(std::size_t n_bytes);
 
     uint32_t load32(uint32_t addr);
     uint16_t load16(uint32_t addr);
