@@ -38,12 +38,16 @@ add_executable(rv_registers_test tests/registers_test.cpp)
 target_link_libraries(rv_registers_test test_main rv)
 add_test(NAME RegisterTests COMMAND rv_registers_test)
 
-add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp tests/registers_test.cpp)
+add_executable(rv_memory_test tests/memory_test.cpp)
+target_link_libraries(rv_memory_test test_main rv)
+add_test(NAME MemoryTests COMMAND rv_memory_test)
+
+add_executable(rv_tests tests/format_test.cpp tests/decoder_test.cpp tests/registers_test.cpp tests/memory_test.cpp)
 target_link_libraries(rv_tests test_main rv)
 
 # Add 'make check' which shows the output of catch on failure
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-                  DEPENDS rv_decoder_tests rv_format_tests rv_registers_test)
+                  DEPENDS rv_decoder_tests rv_format_tests rv_registers_test rv_memory_test)
 
 ## CODE COVERAGE WITH LCOV ##
 if(ENABLE_COVERAGE)
