@@ -27,22 +27,35 @@ void Core::execute() {
     puts("-----------------------------------------");
     fmt::print("@{}: {}\n", program_counter, inst);
 
-    program_counter += 4;
+    auto next_pc = program_counter + 4;
 
     switch (inst.operation) {
-        case Operations::JAL:
-            registers.set(inst.rd, program_counter + 1);
-            program_counter += (inst.simm);
+        case Operations::LUI:
+            registers.set(inst.rd, inst.imm);
             break;
+        case Operations::AUIPC:
+            registers.set(inst.rd, inst.simm + program_counter);
+            break;
+        case Operations::JAL:
+            registers.set(inst.rd, next_pc);
+            next_pc = program_counter + (inst.simm);
+            break;
+        case Operations::JALR: {
+            auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
+            registers.set(inst.rd, next_pc);
+            next_pc = rs1 + inst.simm;
+            next_pc &= 0xFFFFFFFE;
+            break;
+        }
         case Operations::BEQ: {
             if (registers.get(inst.rs1) == registers.get(inst.rs2)) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
         case Operations::BNE: {
             if (registers.get(inst.rs1) != registers.get(inst.rs2)) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
@@ -50,7 +63,7 @@ void Core::execute() {
             auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
             auto rs2 = static_cast<int32_t>(registers.get(inst.rs2));
             if (rs1 < rs2) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
@@ -58,7 +71,7 @@ void Core::execute() {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
             auto rs2 = static_cast<uint32_t>(registers.get(inst.rs2));
             if (rs1 < rs2) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
@@ -66,7 +79,7 @@ void Core::execute() {
             auto rs1 = static_cast<int32_t>(registers.get(inst.rs1));
             auto rs2 = static_cast<int32_t>(registers.get(inst.rs2));
             if (rs1 >= rs2) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
@@ -74,7 +87,7 @@ void Core::execute() {
             auto rs1 = static_cast<uint32_t>(registers.get(inst.rs1));
             auto rs2 = static_cast<uint32_t>(registers.get(inst.rs2));
             if (rs1 >= rs2) {
-                program_counter += inst.simm;
+                next_pc = program_counter + inst.simm;
             }
             break;
         }
@@ -223,4 +236,6 @@ void Core::execute() {
         default:
             throw std::runtime_error("unhandled instruction");
     }
+
+    program_counter = next_pc;
 }

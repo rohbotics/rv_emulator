@@ -303,5 +303,7 @@ Instruction::Instruction(uint32_t raw_inst) {
             }
             break;
         }
+        default:
+            throw std::runtime_error("Could not decode instruction");
     }
 }
